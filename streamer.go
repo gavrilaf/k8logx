@@ -87,3 +87,8 @@ func (s *Streamer) Run(ctx context.Context) error {
 
 	return nil
 }
+
+func (s *Streamer) Close() {
+	s.receiver.Receive([]byte("--------------------"))
+	close(s.closed)
+}

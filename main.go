@@ -4,10 +4,19 @@ import (
 	"context"
 	"fmt"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 func fatal(msg string, err error) {
 	panic(fmt.Sprintf("%s, %v", msg, err))
+}
+
+func waitForInterrupt() {
+	c := make(chan os.Signal)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	<-c
 }
 
 func main() {
@@ -30,6 +39,8 @@ func main() {
 
 	streamer.Run(ctx)
 
-	for {}
+	waitForInterrupt()
+
+	streamer.Close()
 }
 
