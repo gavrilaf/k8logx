@@ -1,11 +1,13 @@
 package main
 
 import (
+	"context"
 	"fmt"
-	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"os"
 	"os/signal"
 	"syscall"
+
+	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 )
 
 func fatal(msg string, err error) {
@@ -19,34 +21,21 @@ func waitForInterrupt() {
 }
 
 func main() {
-	cfg, err := ReadConfig("recon.yaml")
+	config, err := ReadConfig("recon.yaml")
 	if err != nil {
 		fatal("coudn't read config", err)
 	}
 
-	fmt.Println(cfg)
-
-	/*clientset, err := MakeK8Client()
+	clientset, err := MakeK8Client()
 	if err != nil {
 		fatal("failed to create k8 client", err)
 	}
-	
-	ctx := context.Background()
-	
-	receiver := &Receiver{}
-	
-	cfg := StreamerConfig{
-		K8Provider:    clientset.CoreV1().Pods("default"),
-		PodName:       "api-deployment-76fd458bcd-pkt9t",
-		ContainerName: "recon-api-app",
-		Receiver:      receiver,
-	}
-	streamer := MakeStreamer(cfg)
 
-	streamer.Run(ctx)
+	ctx, cancelFn := context.WithCancel(context.Background())
+
+	runner := MakeRunner(&config, clientset.CoreV1().Pods("default"))
+	runner.RunLogs(ctx)
 
 	waitForInterrupt()
-
-	streamer.Close()*/
+	cancelFn()
 }
-

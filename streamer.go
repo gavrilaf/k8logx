@@ -80,11 +80,6 @@ func (s *Streamer) Run(ctx context.Context) error {
 		}
 	}()
 
-	go func() {
-		<-ctx.Done()
-		close(s.closed)
-	}()
-
 	return nil
 }
 

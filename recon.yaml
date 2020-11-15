@@ -2,11 +2,13 @@
 pods:
   - api:
     pattern: "api-deployment"
-    container: "recon-api-app"
-    fields-order:
-      - ["method", "uri", "status", "latency"]
-      - ["sql"]
-      - ["args", "rowCount"]
-    show-all: true
+    containers:
+      - api:
+        pattern: "recon-api-app"
+        fields-order:
+          - ["method", "uri", "status", "latency"]
+          - ["sql"]
+          - ["args", "rowCount"]
+        show-all: true
   - dispatcher:
     pattern: "dispatcher"

@@ -3,15 +3,20 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"strings"
 
 	"gopkg.in/yaml.v2"
 )
 
+type ContainerConfig struct {
+	Pattern string     `yaml:"pattern"`
+	Fields  [][]string `yaml:"fields-order,flow"`
+	ShowAll bool       `yaml:"show-all"`
+}
+
 type PodConfig struct {
-	Pattern   string     `yaml:"pattern"`
-	Container string     `yaml:"container"`
-	Fields    [][]string `yaml:"fields-order,flow"`
-	ShowAll   bool       `yaml:"show-all"`
+	Pattern    string            `yaml:"pattern"`
+	Containers []ContainerConfig `yaml:"containers,flow"`
 }
 
 type Config struct {
@@ -30,4 +35,18 @@ func ReadConfig(name string) (Config, error) {
 	}
 
 	return cfg, nil
+}
+
+func (p PodConfig) IsPodMatched(name string) bool {
+	return strings.HasPrefix(name, p.Pattern)
+}
+
+func (p PodConfig) GetContainerConfig(name string) *ContainerConfig {
+	for _, c := range p.Containers {
+		if strings.HasPrefix(name, c.Pattern) {
+			return &c
+		}
+	}
+
+	return nil
 }
