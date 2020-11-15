@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"os"
@@ -20,9 +19,16 @@ func waitForInterrupt() {
 }
 
 func main() {
-	clientset, err := MakeK8Client()
+	cfg, err := ReadConfig("recon.yaml")
 	if err != nil {
-		fatal("faild to create k8 client", err)
+		fatal("coudn't read config", err)
+	}
+
+	fmt.Println(cfg)
+
+	/*clientset, err := MakeK8Client()
+	if err != nil {
+		fatal("failed to create k8 client", err)
 	}
 	
 	ctx := context.Background()
@@ -41,6 +47,6 @@ func main() {
 
 	waitForInterrupt()
 
-	streamer.Close()
+	streamer.Close()*/
 }
 
