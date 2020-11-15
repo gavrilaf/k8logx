@@ -58,7 +58,7 @@ func (s *Streamer) Run(ctx context.Context) error {
 	go func() {
 		<-s.closed
 		if err := stream.Close(); err != nil {
-			fmt.Printf("failed to close stream, pod: %s, container: %s, %w", s.podName, s.containerName, err)
+			fmt.Printf("failed to close stream, pod: %s, container: %s, %v", s.podName, s.containerName, err)
 		}
 	}()
 
