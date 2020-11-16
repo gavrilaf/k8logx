@@ -64,7 +64,7 @@ func (r *Runner) addTarget(target Target) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 
-	receiver := MakeReceiver(target.podName, target.containerName, len(r.streams) + 1, true)
+	receiver := MakeReceiver(target.podName, target.containerName, len(r.streams), true)
 
 	streamer := MakeStreamer(StreamerConfig{
 		K8Provider:    r.k8,

@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"runtime"
 
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
@@ -36,16 +37,12 @@ func MakeStreamer(cfg StreamerConfig) *Streamer {
 }
 
 func (s *Streamer) Run(ctx context.Context) error {
+	var seconds int64 = 300
+
 	logOptions := corev1.PodLogOptions{
 		Container:                    s.containerName,
 		Follow:                       true,
-		Previous:                     false,
-		SinceSeconds:                 nil,
-		SinceTime:                    nil,
-		Timestamps:                   false,
-		TailLines:                    nil,
-		LimitBytes:                   nil,
-		InsecureSkipTLSVerifyBackend: false,
+		SinceSeconds:                 &seconds,
 	}
 
 	logsReq := s.k8provider.GetLogs(s.podName, &logOptions)
@@ -77,6 +74,8 @@ func (s *Streamer) Run(ctx context.Context) error {
 			}
 
 			s.receiver.Receive(line)
+
+			runtime.Gosched()
 		}
 	}()
 

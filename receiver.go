@@ -15,8 +15,10 @@ const (
 
 var podColors = []*color.Color{
 	color.New(color.FgBlue, color.Bold),
-	color.New(color.FgCyan, color.Bold),
 	color.New(color.FgMagenta, color.Bold),
+	color.New(color.FgYellow, color.Bold),
+	color.New(color.FgCyan, color.Bold),
+
 }
 
 var colors = map[Severity]map[int]*color.Color{
@@ -46,7 +48,7 @@ func MakeReceiver(pod, container string, index int, showPod bool) *Receiver {
 		pod:       pod,
 		container: container,
 		showPod:   showPod,
-		podColor:  podColors[len(podColors)%index],
+		podColor:  podColors[index%(len(podColors)-1)],
 	}
 }
 
