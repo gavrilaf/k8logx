@@ -61,16 +61,17 @@ func (r *Runner) RunLogs(ctx context.Context) error {
 }
 
 func (r *Runner) addTarget(target Target) {
-	receiver := &Receiver{}
+	r.lock.Lock()
+	defer r.lock.Unlock()
+
+	receiver := MakeReceiver(target.podName, target.containerName, len(r.streams) + 1, true)
+
 	streamer := MakeStreamer(StreamerConfig{
 		K8Provider:    r.k8,
 		PodName:       target.podName,
 		ContainerName: target.containerName,
 		Receiver:      receiver,
 	})
-
-	r.lock.Lock()
-	defer r.lock.Unlock()
 
 	if err := streamer.Run(context.Background()); err != nil {
 		fmt.Printf("failed to run streamer for %s, %v\n", target.ID(), err)
@@ -85,7 +86,7 @@ func (r *Runner) removeTarget(target Target) {
 
 	pair, ok := r.streams[target.ID()]
 	if !ok {
-		fmt.Printf("streamer for %s is not found", target.ID())
+		return
 	}
 
 	pair.streamer.Close()

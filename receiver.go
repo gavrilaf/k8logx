@@ -7,38 +7,17 @@ import (
 	"github.com/fatih/color"
 )
 
-type Receiver struct {
-}
-
-func (r *Receiver) Receive(line []byte) {
-	msg, err := ParseLine(line)
-	if err != nil {
-		if err != ErrNotJson {
-			internalError(err)
-		} else {
-			printLine(line)
-		}
-		return
-	}
-
-	printMsg(msg)
-}
-
-func internalError(err error) {
-	fmt.Printf("-> %v\n", err)
-}
-
-var significantFields = [][]string{
-	{"method", "uri", "status", "latency"},
-	{"sql"},
-	{"args", "rowCount"},
-}
-
 const (
 	primaryCl = iota
 	secondaryCl
 	secondaryClHi
 )
+
+var podColors = []*color.Color{
+	color.New(color.FgBlue, color.Bold),
+	color.New(color.FgCyan, color.Bold),
+	color.New(color.FgMagenta, color.Bold),
+}
 
 var colors = map[Severity]map[int]*color.Color{
 	SeverityInfo: {
@@ -55,11 +34,52 @@ var colors = map[Severity]map[int]*color.Color{
 		secondaryClHi: color.New(color.FgHiGreen)},
 }
 
-func printMsg(msg Message) {
+type Receiver struct {
+	pod       string
+	container string
+	showPod   bool
+	podColor  *color.Color
+}
+
+func MakeReceiver(pod, container string, index int, showPod bool) *Receiver {
+	return &Receiver{
+		pod:       pod,
+		container: container,
+		showPod:   showPod,
+		podColor:  podColors[len(podColors)%index],
+	}
+}
+
+func (r *Receiver) Receive(line []byte) {
+	msg, err := ParseLine(line)
+	if err != nil {
+		if err != ErrNotJson {
+			r.internalError(err)
+		} else {
+			r.printLine(line)
+		}
+		return
+	}
+
+	r.printMsg(msg)
+}
+
+func (r *Receiver) internalError(err error) {
+	fmt.Printf("-> %v\n", err)
+}
+
+var significantFields = [][]string{
+	{"method", "uri", "status", "latency"},
+	{"sql"},
+	{"args", "rowCount"},
+}
+
+func (r *Receiver) printMsg(msg Message) {
 	primary := colors[msg.Severity][primaryCl]
 	secondary := colors[msg.Severity][secondaryCl]
 	secondaryHi := colors[msg.Severity][secondaryClHi]
 
+	r.podColor.Printf("%s:%s ", r.pod, r.container)
 	primary.Printf("%s %s\n", msg.Timestamp, msg.Msg)
 
 	for _, ll := range significantFields {
@@ -102,7 +122,8 @@ func printMsg(msg Message) {
 	fmt.Println("----------------------------------------")
 }
 
-func printLine(line []byte) {
-	fmt.Println(string(line))
+func (r *Receiver) printLine(line []byte) {
+	r.podColor.Printf("%s:%s ", r.pod, r.container)
+	fmt.Printf("%s\n", string(line))
 	fmt.Println("----------------------------------------")
 }

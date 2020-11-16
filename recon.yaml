@@ -9,6 +9,12 @@ pods:
           - ["method", "uri", "status", "latency"]
           - ["sql"]
           - ["args", "rowCount"]
-        show-all: true
+      - sql:
+        pattern: "cloudsql-proxy"
   - dispatcher:
-    pattern: "dispatcher"
+    pattern: "dispatcher-depoyment"
+    containers:
+      - dispatcher:
+        patterrn: "dispatcher"
+      - sql:
+        pattern: "cloudsql-proxy"
