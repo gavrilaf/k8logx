@@ -23,7 +23,7 @@ func waitForInterrupt() {
 func main() {
 	config, err := ReadConfig("recon.yaml")
 	if err != nil {
-		fatal("coudn't read config", err)
+		fatal("couldn't read config", err)
 	}
 
 	clientset, err := MakeK8Client()

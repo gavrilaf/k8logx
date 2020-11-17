@@ -18,7 +18,6 @@ var podColors = []*color.Color{
 	color.New(color.FgMagenta, color.Bold),
 	color.New(color.FgYellow, color.Bold),
 	color.New(color.FgCyan, color.Bold),
-
 }
 
 var colors = map[Severity]map[int]*color.Color{
@@ -37,18 +36,20 @@ var colors = map[Severity]map[int]*color.Color{
 }
 
 type Receiver struct {
-	pod       string
-	container string
-	showPod   bool
-	podColor  *color.Color
+	pod               string
+	container         string
+	showPod           bool
+	podColor          *color.Color
+	significantFields [][]string
 }
 
-func MakeReceiver(pod, container string, index int, showPod bool) *Receiver {
+func MakeReceiver(pod, container string, index int, showPod bool, fields [][]string) *Receiver {
 	return &Receiver{
-		pod:       pod,
-		container: container,
-		showPod:   showPod,
-		podColor:  podColors[index%(len(podColors)-1)],
+		pod:               pod,
+		container:         container,
+		showPod:           showPod,
+		podColor:          podColors[index%(len(podColors)-1)],
+		significantFields: fields,
 	}
 }
 
@@ -66,14 +67,16 @@ func (r *Receiver) Receive(line []byte) {
 	r.printMsg(msg)
 }
 
-func (r *Receiver) internalError(err error) {
-	fmt.Printf("-> %v\n", err)
+func (r *Receiver) Close() {
+	r.podColor.Printf("%s:%s ", r.pod, r.container)
+	color.Red("closed\n")
+	r.termLine()
 }
 
-var significantFields = [][]string{
-	{"method", "uri", "status", "latency"},
-	{"sql"},
-	{"args", "rowCount"},
+// private
+
+func (r *Receiver) internalError(err error) {
+	fmt.Printf("-> %v\n", err)
 }
 
 func (r *Receiver) printMsg(msg Message) {
@@ -81,10 +84,12 @@ func (r *Receiver) printMsg(msg Message) {
 	secondary := colors[msg.Severity][secondaryCl]
 	secondaryHi := colors[msg.Severity][secondaryClHi]
 
-	r.podColor.Printf("%s:%s ", r.pod, r.container)
+	if r.showPod {
+		r.podColor.Printf("%s:%s ", r.pod, r.container)
+	}
 	primary.Printf("%s %s\n", msg.Timestamp, msg.Msg)
 
-	for _, ll := range significantFields {
+	for _, ll := range r.significantFields {
 		if len(ll) == 1 {
 			if v, ok := msg.Data[ll[0]]; ok {
 				v = strings.TrimSpace(v)
@@ -113,19 +118,27 @@ func (r *Receiver) printMsg(msg Message) {
 	newLine := false
 	for k, v := range msg.Data {
 		v = strings.TrimSpace(v)
-		secondaryHi.Printf("%s: ", k)
-		secondary.Printf("%s ", v)
-		newLine = true
+		if v != "" {
+			secondaryHi.Printf("%s: ", k)
+			secondary.Printf("%s ", v)
+			newLine = true
+		}
 	}
 	if newLine {
 		fmt.Printf("\n")
 	}
 
-	fmt.Println("----------------------------------------")
+	r.termLine()
 }
 
 func (r *Receiver) printLine(line []byte) {
-	r.podColor.Printf("%s:%s ", r.pod, r.container)
+	if r.showPod {
+		r.podColor.Printf("%s:%s ", r.pod, r.container)
+	}
 	fmt.Printf("%s\n", string(line))
+	r.termLine()
+}
+
+func (r *Receiver) termLine() {
 	fmt.Println("----------------------------------------")
 }
