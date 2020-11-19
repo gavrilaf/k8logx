@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 )
 
 type Severity int
@@ -13,12 +14,14 @@ const (
 	SeverityError
 )
 
+var dateStr = "2006-01-02T15:04:05Z"
+
 var ErrNotJson = fmt.Errorf("not-json")
 
 type Message struct {
 	Severity  Severity
 	Msg       string
-	Timestamp string
+	Timestamp time.Time
 	Data      map[string]string
 }
 
@@ -48,6 +51,11 @@ func ParseLine(line []byte) (Message, error) {
 		}
 	}
 
+	t, err := time.Parse(dateStr, msg.Timestamp)
+	if err != nil {
+		return Message{}, fmt.Errorf("failed to parse date, %w", err)
+	}
+
 	data := make(map[string]string)
 	for k, v := range mf {
 		data[k] = fmt.Sprintf("%v", v)
@@ -56,7 +64,7 @@ func ParseLine(line []byte) (Message, error) {
 	return Message{
 		Severity:  getSeverity(msg.Severity),
 		Msg:       msg.Msg,
-		Timestamp: msg.Timestamp,
+		Timestamp: t,
 		Data:      data,
 	}, nil
 }

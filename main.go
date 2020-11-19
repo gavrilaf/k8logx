@@ -33,7 +33,12 @@ func main() {
 
 	ctx, cancelFn := context.WithCancel(context.Background())
 
-	runner := MakeRunner(&config, clientset.CoreV1().Pods("default"))
+	namespace := "default"
+	if config.Namespace != "" {
+		namespace = config.Namespace
+	}
+
+	runner := MakeRunner(&config, clientset.CoreV1().Pods(namespace))
 	runner.RunLogs(ctx)
 
 	waitForInterrupt()

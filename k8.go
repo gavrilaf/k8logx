@@ -26,6 +26,8 @@ func MakeK8Client() (*kubernetes.Clientset, error) {
 		return nil, fmt.Errorf("build config, %w", err)
 	}
 
+	fmt.Printf("Current k8 host is: %s\n", config.Host)
+
 	// create the clientset
 	return kubernetes.NewForConfig(config)
 }

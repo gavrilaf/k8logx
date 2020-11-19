@@ -20,6 +20,7 @@ type PodConfig struct {
 }
 
 type Config struct {
+	Namespace string `yaml:"namespace"`
 	Pods []PodConfig `yaml:"pods,flow"`
 }
 

@@ -87,7 +87,9 @@ func (r *Receiver) printMsg(msg Message) {
 	if r.showPod {
 		r.podColor.Printf("%s:%s ", r.pod, r.container)
 	}
-	primary.Printf("%s %s\n", msg.Timestamp, msg.Msg)
+
+	stime := msg.Timestamp.Local().String()
+	primary.Printf("%s %s\n", stime, msg.Msg)
 
 	for _, ll := range r.significantFields {
 		if len(ll) == 1 {

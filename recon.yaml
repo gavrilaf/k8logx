@@ -1,4 +1,5 @@
 ---
+namespace: "default"
 pods:
   - api:
     pattern: "api-deployment"
