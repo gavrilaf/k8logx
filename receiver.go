@@ -3,43 +3,37 @@ package main
 import (
 	"fmt"
 	"strings"
-
-	"github.com/fatih/color"
+	au "github.com/logrusorgru/aurora"
 )
 
 const (
 	primaryCl = iota
 	secondaryCl
-	secondaryClHi
 )
 
-var podColors = []*color.Color{
-	color.New(color.FgBlue, color.Bold),
-	color.New(color.FgMagenta, color.Bold),
-	color.New(color.FgYellow, color.Bold),
-	color.New(color.FgCyan, color.Bold),
+var podColors = []au.Color{
+	au.BlueFg,
+	au.MagentaFg,
+	au.CyanFg,
 }
 
-var colors = map[Severity]map[int]*color.Color{
+var colors = map[Severity]map[int]au.Color{
 	SeverityInfo: {
-		primaryCl:     color.New(color.FgHiGreen),
-		secondaryCl:   color.New(color.FgGreen),
-		secondaryClHi: color.New(color.FgHiGreen)},
+		primaryCl:     au.GreenFg,
+		secondaryCl: au.GreenFg},
 	SeverityWarning: {
-		primaryCl:     color.New(color.FgHiYellow),
-		secondaryCl:   color.New(color.FgGreen),
-		secondaryClHi: color.New(color.FgHiGreen)},
+		primaryCl:     au.YellowFg,
+		secondaryCl: au.GreenFg},
 	SeverityError: {
-		primaryCl:     color.New(color.FgHiRed),
-		secondaryCl:   color.New(color.FgGreen),
-		secondaryClHi: color.New(color.FgHiGreen)},
+		primaryCl:     au.RedFg,
+		secondaryCl: au.GreenFg},
 }
 
 type Receiver struct {
 	pod               string
 	container         string
 	showPod           bool
-	podColor          *color.Color
+	podColor          au.Color
 	significantFields [][]string
 }
 
@@ -68,8 +62,7 @@ func (r *Receiver) Receive(line []byte) {
 }
 
 func (r *Receiver) Close() {
-	r.podColor.Printf("%s:%s ", r.pod, r.container)
-	color.Red("closed\n")
+	fmt.Printf("%s %s\n", au.Colorize(fmt.Sprintf("%s:%s ", r.pod, r.container), r.podColor), au.Red("closed"))
 	r.termLine()
 }
 
@@ -79,24 +72,29 @@ func (r *Receiver) internalError(err error) {
 	fmt.Printf("-> %v\n", err)
 }
 
+const layout = "2006-01-02T15:04:05"
+
 func (r *Receiver) printMsg(msg Message) {
 	primary := colors[msg.Severity][primaryCl]
 	secondary := colors[msg.Severity][secondaryCl]
-	secondaryHi := colors[msg.Severity][secondaryClHi]
+
+	var sb strings.Builder
 
 	if r.showPod {
-		r.podColor.Printf("%s:%s ", r.pod, r.container)
+		sb.WriteString(au.Colorize(fmt.Sprintf("%s:%s ", r.pod, r.container), r.podColor).String())
 	}
 
-	stime := msg.Timestamp.Local().String()
-	primary.Printf("%s %s\n", stime, msg.Msg)
+	stime := msg.Timestamp.Local().Format(layout)
+	sb.WriteString(au.Colorize(fmt.Sprintf("%s %s\n", stime, msg.Msg), primary).String())
 
 	for _, ll := range r.significantFields {
 		if len(ll) == 1 {
 			if v, ok := msg.Data[ll[0]]; ok {
 				v = strings.TrimSpace(v)
-				secondary.Printf("%s\n", v)
-
+				if v != "" {
+					sb.WriteString(v)
+					sb.WriteByte('\n')
+				}
 				delete(msg.Data, ll[0])
 			}
 		} else {
@@ -104,15 +102,17 @@ func (r *Receiver) printMsg(msg Message) {
 			for _, k := range ll {
 				if v, ok := msg.Data[k]; ok {
 					v = strings.TrimSpace(v)
-					secondaryHi.Printf("%s: ", k)
-					secondary.Printf("%s ", v)
-					newLine = true
+					sb.WriteString(au.Colorize(k, secondary).String())
+					sb.WriteByte(' ')
+					sb.WriteString(v)
+					sb.WriteByte(' ')
 
+					newLine = true
 					delete(msg.Data, k)
 				}
 			}
 			if newLine {
-				fmt.Printf("\n")
+				sb.WriteByte('\n')
 			}
 		}
 	}
@@ -120,22 +120,26 @@ func (r *Receiver) printMsg(msg Message) {
 	newLine := false
 	for k, v := range msg.Data {
 		v = strings.TrimSpace(v)
-		if v != "" {
-			secondaryHi.Printf("%s: ", k)
-			secondary.Printf("%s ", v)
-			newLine = true
-		}
+		sb.WriteString(au.Colorize(k, secondary).String())
+		sb.WriteByte(' ')
+		sb.WriteString(v)
+		sb.WriteByte(' ')
+
+		newLine = true
 	}
+
 	if newLine {
-		fmt.Printf("\n")
+		sb.WriteByte('\n')
 	}
+
+	fmt.Print(sb.String())
 
 	r.termLine()
 }
 
 func (r *Receiver) printLine(line []byte) {
 	if r.showPod {
-		r.podColor.Printf("%s:%s ", r.pod, r.container)
+		fmt.Printf("%s ", au.Colorize(fmt.Sprintf("%s:%s ", r.pod, r.container), r.podColor))
 	}
 	fmt.Printf("%s\n", string(line))
 	r.termLine()

@@ -37,7 +37,7 @@ func MakeStreamer(cfg StreamerConfig) *Streamer {
 }
 
 func (s *Streamer) Run(ctx context.Context) error {
-	var seconds int64 = 300
+	var seconds int64 = 3000
 
 	logOptions := corev1.PodLogOptions{
 		Container:                    s.containerName,
