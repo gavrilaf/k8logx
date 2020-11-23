@@ -16,6 +16,7 @@ type StreamerConfig struct {
 	PodName       string
 	ContainerName string
 	Receiver      *Receiver
+	Seconds       int
 }
 
 type Streamer struct {
@@ -24,6 +25,7 @@ type Streamer struct {
 	containerName string
 	receiver      *Receiver
 	closed        chan struct{}
+	seconds       int
 }
 
 func MakeStreamer(cfg StreamerConfig) *Streamer {
@@ -33,16 +35,20 @@ func MakeStreamer(cfg StreamerConfig) *Streamer {
 		containerName: cfg.ContainerName,
 		receiver:      cfg.Receiver,
 		closed:        make(chan struct{}),
+		seconds:       cfg.Seconds,
 	}
 }
 
 func (s *Streamer) Run(ctx context.Context) error {
-	var seconds int64 = 300
+	seconds := int64(s.seconds)
+	if seconds == 0 {
+		seconds = 300
+	}
 
 	logOptions := corev1.PodLogOptions{
-		Container:                    s.containerName,
-		Follow:                       true,
-		SinceSeconds:                 &seconds,
+		Container:    s.containerName,
+		Follow:       true,
+		SinceSeconds: &seconds,
 	}
 
 	logsReq := s.k8provider.GetLogs(s.podName, &logOptions)

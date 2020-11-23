@@ -71,6 +71,7 @@ func (r *Runner) addTarget(target Target) {
 		PodName:       target.podName,
 		ContainerName: target.containerName,
 		Receiver:      receiver,
+		Seconds:       r.config.SecondsBefore,
 	})
 
 	if err := streamer.Run(context.Background()); err != nil {

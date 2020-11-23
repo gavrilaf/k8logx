@@ -11,7 +11,6 @@ import (
 type ContainerConfig struct {
 	Pattern string     `yaml:"pattern"`
 	Fields  [][]string `yaml:"fields-order,flow"`
-	ShowAll bool       `yaml:"show-all"`
 }
 
 type PodConfig struct {
@@ -20,8 +19,9 @@ type PodConfig struct {
 }
 
 type Config struct {
-	Namespace string `yaml:"namespace"`
-	Pods []PodConfig `yaml:"pods,flow"`
+	Namespace     string      `yaml:"namespace"`
+	SecondsBefore int         `yaml:"seconds-before"`
+	Pods          []PodConfig `yaml:"pods,flow"`
 }
 
 func ReadConfig(name string) (Config, error) {

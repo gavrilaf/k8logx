@@ -1,5 +1,6 @@
 ---
 namespace: "default"
+seconds-before: 600
 pods:
   - api:
     pattern: "api-deployment"
@@ -9,7 +10,6 @@ pods:
         fields-order:
           - ["method", "uri", "status", "latency"]
           - ["sql"]
-          - ["args", "rowCount"]
   - dispatcher:
     pattern: "dispatcher-deployment"
     containers:
