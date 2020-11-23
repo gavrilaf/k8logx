@@ -25,31 +25,30 @@ type Message struct {
 	Data      map[string]string
 }
 
+var skipFields = map[string]struct{}{
+	"timestamp":                             {},
+	"message":                               {},
+	"severity":                              {},
+	"stacktrace":                            {},
+	"logging.googleapis.com/labels":         {},
+	"logging.googleapis.com/sourceLocation": {},
+}
+
+type internalMessage struct {
+	Timestamp string                 `json:"timestamp"`
+	Msg       string                 `json:"message"`
+	Severity  string                 `json:"severity"`
+	Data      map[string]interface{} `json:"-"`
+}
+
 func ParseLine(line []byte) (Message, error) {
-	type messageContext struct {
-		Data json.RawMessage `json:"data"`
-	}
-
-	type internalMessage struct {
-		Timestamp string         `json:"timestamp"`
-		Msg       string         `json:"message"`
-		Severity  string         `json:"severity"`
-		Context   messageContext `json:"context"`
-	}
-
 	var msg internalMessage
 	err := json.Unmarshal(line, &msg)
 	if err != nil {
 		return Message{}, ErrNotJson
 	}
 
-	var mf map[string]interface{}
-	if len(msg.Context.Data) > 0 {
-		err = json.Unmarshal(msg.Context.Data, &mf)
-		if err != nil {
-			return Message{}, fmt.Errorf("failed to parse message context, %w", err)
-		}
-	}
+	_ = json.Unmarshal(line, &msg.Data) // I don't care about errors here
 
 	t, err := time.Parse(dateStr, msg.Timestamp)
 	if err != nil {
@@ -57,8 +56,10 @@ func ParseLine(line []byte) (Message, error) {
 	}
 
 	data := make(map[string]string)
-	for k, v := range mf {
-		data[k] = fmt.Sprintf("%v", v)
+	for k, v := range msg.Data {
+		if _, ok := skipFields[k]; !ok {
+			data[k] = fmt.Sprintf("%v", v)
+		}
 	}
 
 	return Message{

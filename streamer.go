@@ -37,7 +37,7 @@ func MakeStreamer(cfg StreamerConfig) *Streamer {
 }
 
 func (s *Streamer) Run(ctx context.Context) error {
-	var seconds int64 = 3000
+	var seconds int64 = 300
 
 	logOptions := corev1.PodLogOptions{
 		Container:                    s.containerName,
@@ -83,6 +83,6 @@ func (s *Streamer) Run(ctx context.Context) error {
 }
 
 func (s *Streamer) Close() {
-	s.receiver.Receive([]byte("--------------------"))
+	s.receiver.Close()
 	close(s.closed)
 }
