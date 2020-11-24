@@ -15,3 +15,5 @@ pods:
     containers:
       - dispatcher:
         pattern: "dispatcher"
+        fields-order:
+          - ["sql"]

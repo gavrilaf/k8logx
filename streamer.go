@@ -67,6 +67,7 @@ func (s *Streamer) Run(ctx context.Context) error {
 
 	go func() {
 		reader := bufio.NewReader(stream)
+		s.receiver.printLine([]byte("connected"))
 		for {
 			line, err := reader.ReadBytes('\n')
 			if err != nil {

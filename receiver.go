@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"strings"
+
 	au "github.com/logrusorgru/aurora"
 )
 
@@ -15,17 +16,18 @@ var podColors = []au.Color{
 	au.BlueFg,
 	au.MagentaFg,
 	au.CyanFg,
+	au.YellowFg,
 }
 
 var colors = map[Severity]map[int]au.Color{
 	SeverityInfo: {
-		primaryCl:     au.GreenFg,
+		primaryCl:   au.GreenFg,
 		secondaryCl: au.GreenFg},
 	SeverityWarning: {
-		primaryCl:     au.YellowFg,
+		primaryCl:   au.YellowFg,
 		secondaryCl: au.GreenFg},
 	SeverityError: {
-		primaryCl:     au.RedFg,
+		primaryCl:   au.RedFg,
 		secondaryCl: au.GreenFg},
 }
 
@@ -42,7 +44,7 @@ func MakeReceiver(pod, container string, index int, showPod bool, fields [][]str
 		pod:               pod,
 		container:         container,
 		showPod:           showPod,
-		podColor:          podColors[index%(len(podColors)-1)],
+		podColor:          podColors[index % len(podColors)],
 		significantFields: fields,
 	}
 }

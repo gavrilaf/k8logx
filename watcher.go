@@ -86,7 +86,7 @@ func (w *Watcher) Stop() {
 }
 
 func (w *Watcher) resourceAdded(p *corev1.Pod) {
-	podCfg := w.getPodConfig(p.Name)
+	podCfg := w.config.GetPodConfig(p.Name)
 	if podCfg == nil {
 		return
 	}
@@ -107,7 +107,7 @@ func (w *Watcher) resourceAdded(p *corev1.Pod) {
 }
 
 func (w *Watcher) resourceDeleted(p *corev1.Pod) {
-	if w.getPodConfig(p.Name) == nil {
+	if w.config.GetPodConfig(p.Name) == nil {
 		return
 	}
 
@@ -119,13 +119,4 @@ func (w *Watcher) resourceDeleted(p *corev1.Pod) {
 		target := Target{podName: p.Name, containerName: c.Name}
 		w.removed <- target
 	}
-}
-
-func (w *Watcher) getPodConfig(name string) *PodConfig {
-	for _, p := range w.config.Pods {
-		if p.IsPodMatched(name) {
-			return &p
-		}
-	}
-	return nil
 }

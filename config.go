@@ -38,13 +38,33 @@ func ReadConfig(name string) (Config, error) {
 	return cfg, nil
 }
 
-func (p PodConfig) IsPodMatched(name string) bool {
+func (c Config) GetPodConfig(podName string) *PodConfig {
+	if len(c.Pods) == 0 { // empty pods list in config, means 'accept all'
+		return &PodConfig{}
+	}
+
+	for _, p := range c.Pods {
+		if p.isPodMatched(podName) {
+			return &p
+		}
+	}
+
+	return nil
+}
+
+// PodConfig
+
+func (p PodConfig) isPodMatched(name string) bool {
 	return strings.HasPrefix(name, p.Pattern)
 }
 
-func (p PodConfig) GetContainerConfig(name string) *ContainerConfig {
+func (p PodConfig) GetContainerConfig(containerName string) *ContainerConfig {
+	if len(p.Containers) == 0 { // empty containers list in config, means 'accept all'
+		return &ContainerConfig{}
+	}
+
 	for _, c := range p.Containers {
-		if strings.HasPrefix(name, c.Pattern) {
+		if strings.HasPrefix(containerName, c.Pattern) {
 			return &c
 		}
 	}
