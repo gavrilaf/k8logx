@@ -7,9 +7,11 @@ Kubernetes logs viewer supports streaming from several containers and json logs 
 - monitors kubernetes and dynamically adds and removes containers
 
 ## How to run
+```
 git clone https://github.com/gavrilaf/k8logx.git
 go build
 ./k8logx
+```
 
 If runned without params utility starts stream logs for the all pods and all containers in the current context.
 
@@ -37,6 +39,8 @@ pods:
         pattern: "dispatcher"
 ```
 
-`namespace` - kube namespace for monitoring
-`seconds-before` - since seconds from now
-`pods` - you can define pods you want to monitor (if section is empty k8logx will monitor all available pods)
+* `namespace` - kube namespace for monitoring
+* `seconds-before` - since seconds from now
+* `pods` - you can define pods you want to monitor (if section is empty k8logx will monitor all available pods)
+* `fields-order` - you are able to define fields output order line by line
+
