@@ -15,8 +15,6 @@ const (
 	SeverityError
 )
 
-var dateStr = "2006-01-02T15:04:05Z"
-
 var ErrNotJson = fmt.Errorf("not-json")
 
 type Message struct {
@@ -68,6 +66,8 @@ var skipFields = map[string]struct{}{
 	"logging.googleapis.com/sourceLocation": {},
 }
 
+var dateLayout = "2006-01-02T15:04:05.99Z"
+
 func (p *Parser) ParseLine(line []byte) (Message, error) {
 	var rawMsg map[string]interface{}
 	err := json.Unmarshal(line, &rawMsg)
@@ -79,7 +79,7 @@ func (p *Parser) ParseLine(line []byte) (Message, error) {
 	severity, _ := rawMsg[p.mapping[severityKey]]
 	timestamp, _ := rawMsg[p.mapping[timestampKey]]
 
-	t, err := time.Parse(dateStr, timestamp.(string))
+	t, err := time.Parse(dateLayout, timestamp.(string))
 	if err != nil {
 		return Message{}, fmt.Errorf("failed to parse date, %w", err)
 	}

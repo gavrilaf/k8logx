@@ -74,7 +74,7 @@ func (r *Receiver) internalError(err error) {
 	fmt.Printf("-> %v\n", err)
 }
 
-const layout = "2006-01-02T15:04:05"
+const tmPrintLayout = "2006-01-02T15:04:05.99"
 
 func (r *Receiver) printMsg(msg Message) {
 	primary := colors[msg.Severity][primaryCl]
@@ -84,7 +84,7 @@ func (r *Receiver) printMsg(msg Message) {
 
 	sb.WriteString(au.Colorize(fmt.Sprintf("%s:%s ", r.pod, r.container), r.podColor).String())
 
-	stime := msg.Timestamp.Local().Format(layout)
+	stime := msg.Timestamp.Local().Format(tmPrintLayout)
 	sb.WriteString(au.Colorize(fmt.Sprintf("%s %s\n", stime, msg.Msg), primary).String())
 
 	for _, ll := range r.significantFields {
