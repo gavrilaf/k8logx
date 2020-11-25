@@ -21,14 +21,18 @@ func waitForInterrupt() {
 }
 
 func main() {
-	 var config Config
-	 if len(os.Args) == 2 {
-	 	var err error
-		 config, err = ReadConfig(os.Args[1])
-		 if err != nil {
-			 fatal("couldn't read config", err)
-		 }
-	 }
+	var config Config
+	if len(os.Args) == 2 {
+		var err error
+		config, err = ReadConfig(os.Args[1])
+		if err != nil {
+			fatal("couldn't read config", err)
+		}
+	}
+
+	if config.Namespace == "" {
+		config.Namespace = "default"
+	}
 
 	clientset, err := MakeK8Client()
 	if err != nil {
@@ -36,10 +40,6 @@ func main() {
 	}
 
 	ctx, cancelFn := context.WithCancel(context.Background())
-
-	if config.Namespace == "" {
-		config.Namespace = "default"
-	}
 
 	runner := MakeRunner(&config, clientset.CoreV1().Pods(config.Namespace))
 	runner.RunLogs(ctx)

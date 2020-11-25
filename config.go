@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	"strings"
+	"regexp"
 
 	"gopkg.in/yaml.v2"
 )
@@ -19,9 +19,10 @@ type PodConfig struct {
 }
 
 type Config struct {
-	Namespace     string      `yaml:"namespace"`
-	SecondsBefore int         `yaml:"seconds-before"`
-	Pods          []PodConfig `yaml:"pods,flow"`
+	Namespace     string            `yaml:"namespace"`
+	SecondsBefore int               `yaml:"seconds-before"`
+	Mapping       map[string]string `yaml:"mapping"`
+	Pods          []PodConfig       `yaml:"pods,flow"`
 }
 
 func ReadConfig(name string) (Config, error) {
@@ -55,7 +56,8 @@ func (c Config) GetPodConfig(podName string) *PodConfig {
 // PodConfig
 
 func (p PodConfig) isPodMatched(name string) bool {
-	return strings.HasPrefix(name, p.Pattern)
+	match, _ := regexp.MatchString(p.Pattern, name)
+	return match
 }
 
 func (p PodConfig) GetContainerConfig(containerName string) *ContainerConfig {
@@ -64,7 +66,7 @@ func (p PodConfig) GetContainerConfig(containerName string) *ContainerConfig {
 	}
 
 	for _, c := range p.Containers {
-		if strings.HasPrefix(containerName, c.Pattern) {
+		if match, _ := regexp.MatchString(c.Pattern, containerName); match {
 			return &c
 		}
 	}

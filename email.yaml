@@ -1,0 +1,18 @@
+---
+namespace: "oms"
+seconds-before: 30
+mapping:
+  message: msg
+  severity: level
+  timestamp: time
+pods:
+  - email:
+    pattern: email-service
+    containers:
+      - service:
+        pattern: email-service$
+  - aggregator:
+    pattern: email-aggregator
+    containers:
+      - service:
+        pattern: email-aggregator$

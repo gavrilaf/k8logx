@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
 	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
@@ -64,7 +63,8 @@ func (r *Runner) addTarget(target Target) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 
-	receiver := MakeReceiver(target.podName, target.containerName, len(r.streams), true, target.containerCfg.Fields)
+	parser := MakeParser(r.config.Mapping)
+	receiver := MakeReceiver(target.podName, target.containerName, len(r.streams), target.containerCfg.Fields, parser)
 
 	streamer := MakeStreamer(StreamerConfig{
 		K8Provider:    r.k8,
@@ -75,7 +75,7 @@ func (r *Runner) addTarget(target Target) {
 	})
 
 	if err := streamer.Run(context.Background()); err != nil {
-		fmt.Printf("failed to run streamer for %s, %v\n", target.ID(), err)
+		//fmt.Printf("failed to run streamer for %s, %v\n", target.ID(), err)
 		return
 	}
 	r.streams[target.ID()] = logPair{streamer: streamer, receiver: receiver}

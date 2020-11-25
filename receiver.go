@@ -34,23 +34,23 @@ var colors = map[Severity]map[int]au.Color{
 type Receiver struct {
 	pod               string
 	container         string
-	showPod           bool
 	podColor          au.Color
 	significantFields [][]string
+	parser            *Parser
 }
 
-func MakeReceiver(pod, container string, index int, showPod bool, fields [][]string) *Receiver {
+func MakeReceiver(pod, container string, index int, fields [][]string, parser *Parser) *Receiver {
 	return &Receiver{
 		pod:               pod,
 		container:         container,
-		showPod:           showPod,
-		podColor:          podColors[index % len(podColors)],
+		podColor:          podColors[index%len(podColors)],
 		significantFields: fields,
+		parser:            parser,
 	}
 }
 
 func (r *Receiver) Receive(line []byte) {
-	msg, err := ParseLine(line)
+	msg, err := r.parser.ParseLine(line)
 	if err != nil {
 		if err != ErrNotJson {
 			r.internalError(err)
@@ -82,9 +82,7 @@ func (r *Receiver) printMsg(msg Message) {
 
 	var sb strings.Builder
 
-	if r.showPod {
-		sb.WriteString(au.Colorize(fmt.Sprintf("%s:%s ", r.pod, r.container), r.podColor).String())
-	}
+	sb.WriteString(au.Colorize(fmt.Sprintf("%s:%s ", r.pod, r.container), r.podColor).String())
 
 	stime := msg.Timestamp.Local().Format(layout)
 	sb.WriteString(au.Colorize(fmt.Sprintf("%s %s\n", stime, msg.Msg), primary).String())
@@ -140,9 +138,7 @@ func (r *Receiver) printMsg(msg Message) {
 }
 
 func (r *Receiver) printLine(line []byte) {
-	if r.showPod {
-		fmt.Printf("%s ", au.Colorize(fmt.Sprintf("%s:%s ", r.pod, r.container), r.podColor))
-	}
+	fmt.Printf("%s ", au.Colorize(fmt.Sprintf("%s:%s ", r.pod, r.container), r.podColor))
 	fmt.Printf("%s\n", string(line))
 	r.termLine()
 }
